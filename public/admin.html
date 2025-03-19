@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Add Member</title>
+    <link href="https://fonts.googleapis.com/css2?family=Aldrich&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-panel {
+            margin-top: 40px;
+        }
+        .user-details {
+            background-color: #222222;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        .detail-row {
+            margin: 10px 0;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #DDDDDD;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel - Add Member</h1>
+        
+        <div class="form-container">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Member Email Address:</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <button id="addUserBtn">Add Member</button>
+        </div>
+        
+        <div id="result" class="result hidden"></div>
+        
+        <div id="userDetails" class="user-details hidden">
+            <h2>New Member Details:</h2>
+            <div class="detail-row">
+                <span class="detail-label">Username:</span> <span id="detailUsername"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span> <span id="detailEmail"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Identifier:</span> <span id="detailIdentifier"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Initial Code:</span> <span id="detailCode"></span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addUserBtn = document.getElementById('addUserBtn');
+            const resultDiv = document.getElementById('result');
+            const userDetailsDiv = document.getElementById('userDetails');
+            
+            addUserBtn.addEventListener('click', async function() {
+                const username = document.getElementById('username').value.trim();
+                const email = document.getElementById('email').value.trim();
+                
+                // Basic validation
+                if (!username || !email) {
+                    showResult('All fields are required', false);
+                    return;
+                }
+                
+                // Email validation
+                if (!validateEmail(email)) {
+                    showResult('Please enter a valid email address', false);
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/admin/add-user', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showResult('Member added successfully', true);
+                        
+                        // Display user details
+                        document.getElementById('detailUsername').textContent = username;
+                        document.getElementById('detailEmail').textContent = email;
+                        document.getElementById('detailIdentifier').textContent = data.identifier;
+                        document.getElementById('detailCode').textContent = data.code;
+                        userDetailsDiv.classList.remove('hidden');
+                    } else {
+                        showResult(data.message || 'Failed to add member', false);
+                        userDetailsDiv.classList.add('hidden');
+                    }
+                } catch (error) {
+                    showResult('Server error. Please try again.', false);
+                    userDetailsDiv.classList.add('hidden');
+                    console.error('Error:', error);
+                }
+            });
+            
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+            
+            function showResult(message, isSuccess) {
+                resultDiv.textContent = message;
+                resultDiv.classList.remove('hidden', 'success', 'error');
+                resultDiv.classList.add(isSuccess ? 'success' : 'error');
+            }
+        });
+    </script>
+</body>
+</html>
