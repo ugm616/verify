@@ -1,0 +1,4 @@
+node_modules/
+.env
+users.enc
+blocked_ips.json
